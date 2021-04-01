@@ -17,13 +17,15 @@ public class CountryViewModel extends AndroidViewModel {
         mRepository = new CountryRepository(application);
         mAllCountries = mRepository.getAllCountries();
     }
-
+//
     public LiveData<List<Country>> getAllCountries() { return mAllCountries; }
-
+//
     public void insert(Country country) { mRepository.insert(country); }
-
+//
     public void delete(Country country) {mRepository.delete(country);}
-
-    public void deleteAll(Country country) {mRepository.deleteAll(country);}
+//
+//    public void deleteAll(Country country) {mRepository.deleteAll(country);}
+//
+//}
 
 }

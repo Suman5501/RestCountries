@@ -9,28 +9,48 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import com.example.restcountries.CountryData;
-
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Database(entities = {Country.class}, version = 1,exportSchema = false)
 public abstract class CountryRoomDatabase extends RoomDatabase {
 
     public abstract CountryDAO countryDao();
 
-    private static CountryRoomDatabase INSTANCE;
+    private static volatile CountryRoomDatabase INSTANCE;
 
-    public static synchronized CountryRoomDatabase getInstance(Context context){
+    private static final int NUMBER_OF_THREADS = 4;
 
-        if(INSTANCE == null){
-            INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                    CountryRoomDatabase.class,"country_database")
-                    .fallbackToDestructiveMigration()
-                    .addCallback(sRoomDatabaseCallback)
-                    .build();
+    static final ExecutorService databaseWriteExecutor = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+
+
+    static CountryRoomDatabase getDatabase(final Context context) {
+        if (INSTANCE == null) {
+            synchronized (CountryRoomDatabase.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                            CountryRoomDatabase.class, "country_database")
+                            .addCallback(sRoomDatabaseCallback)
+                            .build();
+                }
+            }
         }
         return INSTANCE;
     }
+
+
+//    public static CountryRoomDatabase getInstance(Context context){
+//
+//        if(INSTANCE == null){
+//            INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+//                    CountryRoomDatabase.class,"country_database")
+//                    .fallbackToDestructiveMigration()
+//                    .addCallback(sRoomDatabaseCallback)
+//                    .build();
+//        }
+//        return INSTANCE;
+//    }
 
     private static RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback(){
 

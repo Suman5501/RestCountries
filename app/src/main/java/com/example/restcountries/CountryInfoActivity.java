@@ -29,7 +29,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.example.restcountries.db.Country;
 import com.example.restcountries.db.CountryDAO;
 import com.example.restcountries.db.CountryListAdapter;
-import com.example.restcountries.db.CountryRepository;
+
 import com.example.restcountries.db.CountryRoomDatabase;
 import com.example.restcountries.db.CountryViewModel;
 import com.example.restcountries.models.MySingleton;
@@ -51,7 +51,7 @@ public class CountryInfoActivity extends AppCompatActivity {
 //    private CountryRoomDatabase db;
 //    GoogleApiClient googleApiClient;
 //
-//    private CountryDAO mDao;
+    private CountryDAO mDao;
 
 
     private static String URL = "https://restcountries.eu/rest/v2/region/asia";
@@ -62,7 +62,6 @@ public class CountryInfoActivity extends AppCompatActivity {
     private ProgressBar pb;
     private FloatingActionButton mFloatingActionButton;
     private CountryViewModel mCountryViewModel;
-    private CountryRepository mCountryRepository;
     private CountryRoomDatabase db;
 
     @Override
@@ -269,7 +268,6 @@ public class CountryInfoActivity extends AppCompatActivity {
 private void saveTask(List<Country> countryData){
 
     mCountryViewModel = ViewModelProviders.of(this).get(CountryViewModel.class);
-    mCountryRepository= new CountryRepository(getApplication());
 
     class SaveTask extends AsyncTask<Void, Void, Void>{
 
@@ -277,10 +275,10 @@ private void saveTask(List<Country> countryData){
             @Override
             protected Void doInBackground(final Void... params) {
 
-
+            mDao.deleteAll();
             for(int i=0;i<countryData.size();i++){
-//                mDao.insert(countryData.get(i));
-                mCountryRepository.insert(countryData.get(i));
+                mDao.insert(countryData.get(i));
+//                mCountryViewModel.insert(countryData.get(i));
 
             }
             return null;
