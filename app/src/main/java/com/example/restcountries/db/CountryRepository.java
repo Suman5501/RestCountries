@@ -35,6 +35,12 @@ class CountryRepository {
             mCountryDao.delete(country);
         });
     }
+
+    public void deleteAll(Country country) {
+        CountryRoomDatabase.databaseWriteExecutor.execute(() -> {
+            mCountryDao.deleteAll();
+        });
+    }
 }
 //public class CountryRepository {
 

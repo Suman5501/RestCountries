@@ -25,13 +25,13 @@ public abstract class CountryRoomDatabase extends RoomDatabase {
     static final ExecutorService databaseWriteExecutor = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
 
-    static CountryRoomDatabase getDatabase(final Context context) {
+    public static CountryRoomDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (CountryRoomDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             CountryRoomDatabase.class, "country_database")
-                            .addCallback(sRoomDatabaseCallback)
+//                            .addCallback(sRoomDatabaseCallback)
                             .build();
                 }
             }
@@ -40,55 +40,43 @@ public abstract class CountryRoomDatabase extends RoomDatabase {
     }
 
 
-//    public static CountryRoomDatabase getInstance(Context context){
+
+//    private static RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback(){
 //
-//        if(INSTANCE == null){
-//            INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-//                    CountryRoomDatabase.class,"country_database")
-//                    .fallbackToDestructiveMigration()
-//                    .addCallback(sRoomDatabaseCallback)
-//                    .build();
+//        @Override
+//        public void onOpen (@NonNull SupportSQLiteDatabase db){
+//            super.onOpen(db);
+//            // If you want to keep the data through app restarts,
+//            // comment out the following line.
+//            new PopulateDbAsync(INSTANCE).execute();
 //        }
-//        return INSTANCE;
+//    };
+
+
+//    public static class PopulateDbAsync extends AsyncTask<Void, Void, Void>{
+//
+//        private final CountryDAO mDao;
+//
+//
+//
+//        PopulateDbAsync(CountryRoomDatabase db) {
+//            mDao = db.countryDao();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(final Void... params) {
+//            // Start the app with a clean database every time.
+//            // Not needed if you only populate on creation.
+//
+//            ArrayList<Country> countryData = new ArrayList<>();
+//            Country country = new Country("name","capital","flag","region","subregion","988774567","pak,china","eng");
+//            countryData.add(country);
+//
+//
+//                for(int i=0;i<countryData.size();i++){
+//                    mDao.insert(countryData.get(i));
+//                }
+//                return null;
+//        }
 //    }
-
-    private static RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback(){
-
-        @Override
-        public void onOpen (@NonNull SupportSQLiteDatabase db){
-            super.onOpen(db);
-            // If you want to keep the data through app restarts,
-            // comment out the following line.
-            new PopulateDbAsync(INSTANCE).execute();
-        }
-    };
-
-
-    public static class PopulateDbAsync extends AsyncTask<Void, Void, Void>{
-
-        private final CountryDAO mDao;
-
-
-
-        PopulateDbAsync(CountryRoomDatabase db) {
-            mDao = db.countryDao();
-        }
-
-        @Override
-        protected Void doInBackground(final Void... params) {
-            // Start the app with a clean database every time.
-            // Not needed if you only populate on creation.
-
-            ArrayList<Country> countryData = new ArrayList<>();
-            Country country = new Country("name","capital","flag","region","subregion","988774567","pak,china","eng");
-            countryData.add(country);
-
-
-            mDao.deleteAll();
-                for(int i=0;i<countryData.size();i++){
-                    mDao.insert(countryData.get(i));
-                }
-                return null;
-        }
-    }
 }

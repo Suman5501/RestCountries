@@ -24,7 +24,7 @@ public class CountryViewModel extends AndroidViewModel {
 //
     public void delete(Country country) {mRepository.delete(country);}
 //
-//    public void deleteAll(Country country) {mRepository.deleteAll(country);}
+    public void deleteAll(Country country) {mRepository.deleteAll(country);}
 //
 //}
 

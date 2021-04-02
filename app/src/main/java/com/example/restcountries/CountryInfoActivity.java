@@ -31,6 +31,7 @@ import com.example.restcountries.db.CountryDAO;
 import com.example.restcountries.db.CountryListAdapter;
 
 import com.example.restcountries.db.CountryRoomDatabase;
+import com.example.restcountries.db.CountryRoomDatabase_Impl;
 import com.example.restcountries.db.CountryViewModel;
 import com.example.restcountries.models.MySingleton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -45,13 +46,8 @@ import java.util.List;
 
 public class CountryInfoActivity extends AppCompatActivity {
 
-//    private CountryViewModel mCountryViewModel;
-//    private GoogleSignInClient mGoogleSignInClient;
-
-//    private CountryRoomDatabase db;
-//    GoogleApiClient googleApiClient;
-//
     private CountryDAO mDao;
+    private CountryRoomDatabase db;
 
 
     private static String URL = "https://restcountries.eu/rest/v2/region/asia";
@@ -62,7 +58,7 @@ public class CountryInfoActivity extends AppCompatActivity {
     private ProgressBar pb;
     private FloatingActionButton mFloatingActionButton;
     private CountryViewModel mCountryViewModel;
-    private CountryRoomDatabase db;
+    private CountryListAdapter listadapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,52 +69,61 @@ public class CountryInfoActivity extends AppCompatActivity {
 
         recyclerview = findViewById(R.id.countryRecyclerView);
         countries = new ArrayList<>();
-//        countries = fetchData();
 
-
-
-        mFloatingActionButton = findViewById(R.id.floatingActionButton);
-
-
-//         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-//             @Override
-//             public void onClick(View view) {
-////                 mDao.deleteAll();
-////                 db.countryDao().deleteAll();
-//             }
-//         });
-//
-//
-
-        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
-            fetchData();
-        } else {
-
-            fetchfromRoom();
-        }
-
-
-    }
-
-
-    private void fetchfromRoom() {
-
-
-        Toast.makeText(this,"Network connection failed displaying from room",Toast.LENGTH_SHORT).show();
         recyclerview.setLayoutManager(new LinearLayoutManager(this));
 
-        final CountryListAdapter listadapter = new CountryListAdapter(this);
-        recyclerview.setAdapter(listadapter);
+        listadapter = new CountryListAdapter(this);
+
+
+        db = CountryRoomDatabase.getDatabase(getApplicationContext());
+        mDao = db.countryDao();
 
         mCountryViewModel = ViewModelProviders.of(this).get(CountryViewModel.class);
 
         mCountryViewModel.getAllCountries().observe(this, new Observer<List<Country>>() {
             @Override
-            public void onChanged(@Nullable final List<Country> countries) {
-                // Update the cached copy of the words in the adapter.
-                listadapter.setCountries(countries);
+            public void onChanged(List<Country> countries) {
+                listadapter.update(countries);
+            }
+        });
+        recyclerview.setAdapter(listadapter);
+
+        mFloatingActionButton = findViewById(R.id.floatingActionButton);
+
+
+         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View view) {
+//                 mDao.deleteAll();
+//                 db.countryDao().deleteAll();
+             }
+         });
+
+
+        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
+
+            fetchData();
+        }
+        else {
+
+            fetchfromRoom();
+        }
+    }
+
+
+    private void fetchfromRoom() {
+
+        Toast.makeText(this,"Network connection failed displaying from room",Toast.LENGTH_SHORT).show();
+        recyclerview.setLayoutManager(new LinearLayoutManager(this));
+        recyclerview.setAdapter(listadapter);
+
+        mCountryViewModel = ViewModelProviders.of(this).get(CountryViewModel.class);
+        mCountryViewModel.getAllCountries().observe(this, new Observer<List<Country>>() {
+            @Override
+            public void onChanged(List<Country> countries) {
+                listadapter.update(countries);
             }
         });
 
@@ -189,7 +194,7 @@ public class CountryInfoActivity extends AppCompatActivity {
 
 //    public  extractCountry() {
 
-    private void fetchData(){
+    private void fetchData() {
 
         String url = "https://restcountries.eu/rest/v2/region/asia";
         List<Country> countryData = new ArrayList<>();
@@ -202,7 +207,6 @@ public class CountryInfoActivity extends AppCompatActivity {
             public void onResponse(JSONArray response) {
 
                 try {
-//                        final int numberOfItemsInResp = response.length();
 
                     for (int i = 0; i < response.length(); i++) {
                         JSONObject currentCountry = response.getJSONObject(i);
@@ -236,8 +240,11 @@ public class CountryInfoActivity extends AppCompatActivity {
 
                         Country data = new Country(name, capital, flag, region, subregion, population, bordersValue, langsValue);
                         countryData.add(data);
+                        if(mCountryViewModel.getAllCountries() == null)
+                        mCountryViewModel.insert(countryData.get(i));
 
                     }
+
                     recyclerview.setHasFixedSize(true);
                     recyclerview.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                     adapter = new CustomCountryListAdapter(CountryInfoActivity.this, countryData);
@@ -249,8 +256,9 @@ public class CountryInfoActivity extends AppCompatActivity {
                     // with the message from the exception.
                     Log.e("Error:", "Problem parsing the earthquake JSON results", e);
                 }
-                saveTask(countryData);
+
             }
+
 
         }, new Response.ErrorListener() {
             @Override
@@ -261,33 +269,6 @@ public class CountryInfoActivity extends AppCompatActivity {
 
 //        queue.add(jsonArrayRequest);
         MySingleton.getInstance(this).addToRequestQueue(jsonArrayRequest);
-
-
-    }
-
-private void saveTask(List<Country> countryData){
-
-    mCountryViewModel = ViewModelProviders.of(this).get(CountryViewModel.class);
-
-    class SaveTask extends AsyncTask<Void, Void, Void>{
-
-
-            @Override
-            protected Void doInBackground(final Void... params) {
-
-            mDao.deleteAll();
-            for(int i=0;i<countryData.size();i++){
-                mDao.insert(countryData.get(i));
-//                mCountryViewModel.insert(countryData.get(i));
-
-            }
-            return null;
-        }
-    }
-
-//    db = CountryRoomDatabase.getInstance(getApplicationContext());
-    SaveTask st = new SaveTask();
-    st.execute();
 
 
     }
